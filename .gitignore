@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.der
+*.pem
+*.key
+.env*
+*.prg
+*.iq
+garmin-route-nav/tools/routes/

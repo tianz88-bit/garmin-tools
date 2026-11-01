@@ -1,0 +1,41 @@
+name: Publish Garmin planner
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify route logic
+        run: |
+          cd garmin-route-nav/tools
+          python3 test_gpx_to_route.py
+          python3 test_nav_logic.py
+          cd ../planner/test
+          node test_routecore.js
+      - name: Prepare static planner only
+        run: |
+          mkdir -p public/garmin-route-nav
+          cp -R garmin-route-nav/planner public/garmin-route-nav/planner
+          rm -rf public/garmin-route-nav/planner/test
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - uses: actions/deploy-pages@v4
+        id: deploy
